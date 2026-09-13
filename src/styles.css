@@ -758,3 +758,37 @@ main {
 .history-item span {
   color: #d4c8ad;
   font-size: 9px;
+}
+.empty {
+  color: #838a91;
+  font-size: 11px;
+}
+.reset {
+  width: 100%;
+  padding: 16px;
+  border: 0;
+  background: transparent;
+  color: #8f969d;
+  font-size: 10px;
+}
+@keyframes pulse {
+  50% {
+    transform: scale(1.08);
+    opacity: 0.65;
+  }
+}
+@media (min-width: 600px) {
+  .scene-art {
+    height: 260px;
+  }
+  .scene-card {
+    padding: 26px 30px;
+  }
+  .choices {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .choices button {
+    grid-template-columns: 31px 1fr;
+    align-content: center;
+  }
+}
