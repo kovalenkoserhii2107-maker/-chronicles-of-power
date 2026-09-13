@@ -467,7 +467,7 @@ Deno.serve(async (req: Request) => {
 11. mechanics.insight — прогресс понимания правды. Он растёт только за проверенные улики и не достигает 100 до главы 10. mechanics.exposure — насколько противник понимает, что его расследуют; при высоком значении он подбрасывает дезинформацию и давит через аппарат. mechanics.leverage — от 0 до 5 единиц политического влияния, которое можно заработать доказательствами или потерять при жёстких решениях.
 12. relationships — 3–6 постоянных ключевых персонажей. После решения логично меняй trust и suspicion, сохраняй имена и роли. Высокое доверие открывает честную помощь, высокая подозрительность создаёт скрытое сопротивление. stance коротко описывает текущее отношение.
 13. Если решение содержит обещание или сделку, создай obligation со сроком dueTurn через 2–4 главы. В срок обязательство обязано вернуться в сцену и стать выбором: выполнить, нарушить или переиграть. Завершённые обязательства помечай «Выполнено» или «Нарушено».
-14. Каждое решение до главы 9 создаёт ровно один delayedEffect со сроком через 2–4 главы, но не позже главы 12. В dueTurn эффект обязан стать важной частью сцены и затем исчезнуть из списка. sourceChoice всегда содержит точное название исходного выбора. Не удаляй незавершённые эффекты раньше срока.
+14. При первом запросе, когда choice отсутствует, delayedEffects обязан быть пустым массивом: нельзя создавать последствия для ещё не выбранных вариантов. После фактического выбора игрока до главы 9 добавь ровно один новый delayedEffect только для body.choice; никогда не создавай эффекты для двух невыбранных вариантов сцены. Срок — через 2–4 главы, но не позже главы 12. В dueTurn эффект обязан стать важной частью сцены и затем исчезнуть из списка. sourceChoice содержит точное название body.choice.label. Не удаляй незавершённые эффекты раньше срока.
 15. Игрок может поверить в ложную теорию. Не исправляй его автоматически: выбранный метод расследования усиливает доступные ему доказательства и может временно увеличить вес ошибочной версии.
 16. Финал зависит одновременно от insight, exposure, выполненных обещаний, отношений, показателей государства и того, какую теорию игрок фактически преследовал. Истину можно раскрыть, скрыть, использовать или понять слишком поздно.
 
@@ -520,6 +520,23 @@ Deno.serve(async (req: Request) => {
     }
     parsed.story.act = targetAct;
     parsed.story.actTitle = actNames[targetAct as 1 | 2 | 3];
+
+    // Structured output guarantees shape, while this guard guarantees branch
+    // causality: the model may only retain effects created by choices the
+    // player actually made, never by the two alternatives they did not pick.
+    const selectedChoices = [
+      ...(Array.isArray(body.history)
+        ? body.history.map((item: any) => item?.choice)
+        : []),
+      body.choice?.label,
+    ].filter((item): item is string =>
+      typeof item === "string" && item.trim().length > 0
+    );
+    parsed.story.mechanics.delayedEffects = selectedChoices.length === 0
+      ? []
+      : parsed.story.mechanics.delayedEffects.filter((effect: any) =>
+        selectedChoices.some((choice) => effect.sourceChoice.includes(choice))
+      );
     return new Response(JSON.stringify({ mode: "ai", ...parsed }), {
       headers: headers(origin),
     });
