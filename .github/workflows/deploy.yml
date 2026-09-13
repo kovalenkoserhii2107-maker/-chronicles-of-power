@@ -39,7 +39,12 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
         with:
+          name: chronicles-pages-${{ github.run_id }}-${{ github.run_attempt }}
           path: ./dist
+      - name: Wait for legacy Pages build
+        run: sleep 15
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346
+        with:
+          artifact_name: chronicles-pages-${{ github.run_id }}-${{ github.run_attempt }}
