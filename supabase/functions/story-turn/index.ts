@@ -535,8 +535,26 @@ Deno.serve(async (req: Request) => {
     parsed.story.mechanics.delayedEffects = selectedChoices.length === 0
       ? []
       : parsed.story.mechanics.delayedEffects.filter((effect: any) =>
+        effect.dueTurn > targetTurn &&
         selectedChoices.some((choice) => effect.sourceChoice.includes(choice))
       );
+    if (body.choice?.label && targetTurn <= 9) {
+      const hasCurrentEffect = parsed.story.mechanics.delayedEffects.some(
+        (effect: any) => effect.sourceChoice.includes(body.choice.label),
+      );
+      if (!hasCurrentEffect) {
+        const dueTurn = Math.min(
+          12,
+          Math.max(targetTurn + 1, (Number(body.turn) || 1) + 2),
+        );
+        parsed.story.mechanics.delayedEffects.push({
+          id: `choice_${Number(body.turn) || 1}_${body.choice.id || "effect"}`,
+          sourceChoice: body.choice.label,
+          dueTurn,
+          warning: `Последствия решения проявятся к главе ${dueTurn}.`,
+        });
+      }
+    }
     return new Response(JSON.stringify({ mode: "ai", ...parsed }), {
       headers: headers(origin),
     });
