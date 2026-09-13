@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Prepare Vite entry
+        run: cp index.source.html index.html
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
@@ -42,7 +44,7 @@ jobs:
           name: chronicles-pages-${{ github.run_id }}-${{ github.run_attempt }}
           path: ./dist
       - name: Wait for legacy Pages build
-        run: sleep 15
+        run: sleep 45
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346
